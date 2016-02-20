@@ -1,6 +1,6 @@
 import { COLOR } from 'react-native-material-design'
 
-const SERVER_URL = 'http://u.ofr.me:8082'
+const SERVER_URL = 'http://vlr.ofr.me:8082'
 
 export function getThemePrimary() {
 	// see
