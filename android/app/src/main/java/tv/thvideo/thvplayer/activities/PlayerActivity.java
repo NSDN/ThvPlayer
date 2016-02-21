@@ -3,6 +3,7 @@ package tv.thvideo.thvplayer.activities;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -133,11 +134,9 @@ public class PlayerActivity extends Activity {
     }
     static Pattern playPartsPattern = Pattern.compile("<ul id=\"player_code\" mid=\"[^\"]+\"><li>(.*?)<\\/li>");
     void loadThvInfo(int cid, final Response.Listener<List<PlayPart>> resp, final Response.ErrorListener err) {
-        mStatusText.setText("loading video info...");
         ThisApp.getRequestQueue().add(new StringRequest("http://thvideo.tv/v/th" + cid, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                mStatusText.setText("");
                 mPlayParts.clear();
                 Matcher matcher = playPartsPattern.matcher(response);
                 if (matcher.find()) {
@@ -162,12 +161,10 @@ public class PlayerActivity extends Activity {
         String url;
     }
     void loadPlayUrl(String code, final Response.Listener<PlayUrl> resp, final Response.ErrorListener err) {
-        mStatusText.setText("loading video content " + code + "...");
         ThisApp.getRequestQueue().add(new StringRequest("http://thvideo.tv/api/playurl.php?" + code, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
-                    mStatusText.setText("");
                     ByteArrayInputStream input = new ByteArrayInputStream(response.getBytes());
                     Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(input);
                     NodeList elems = doc.getDocumentElement().getElementsByTagName("url");
@@ -194,11 +191,9 @@ public class PlayerActivity extends Activity {
     }
 
     void loadComments(String code, final Response.Listener<BaseDanmakuParser> resp, final Response.ErrorListener err) {
-        mStatusText.setText("loading comments " + code + "...");
         ThisApp.getRequestQueue().add(new StringRequest("http://thvideo.tv/comment?" + code, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                mStatusText.setText("");
                 try {
                     // Note: default volley encoding is iso-8859-1
                     ByteArrayInputStream input = new ByteArrayInputStream(response.getBytes("ISO-8859-1"));
@@ -214,45 +209,63 @@ public class PlayerActivity extends Activity {
         }, err));
     }
 
+    Handler timer = new android.os.Handler();
+    void setStatusText(final String text) {
+        timer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mStatusText.setText(text);
+            }
+        }, 0);
+    }
+
+    // TODO: save java from (callback) hell
     void playVideo(final String code) {
+        setStatusText("loading video...");
         loadPlayUrl(code, new Response.Listener<PlayUrl>() {
             @Override
             public void onResponse(final PlayUrl playUrl) {
-                mVideoView.setVideoPath(playUrl.url);
-
-                loadComments(code, new Response.Listener<BaseDanmakuParser>() {
+                mVideoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
                     @Override
-                    public void onResponse(BaseDanmakuParser response) {
-                        mDanmakuView.setCallback(new DrawHandler.Callback() {
+                    public void onPrepared(IMediaPlayer mp) {
+                        setStatusText("loading comments...");
+                        loadComments(code, new Response.Listener<BaseDanmakuParser>() {
                             @Override
-                            public void prepared() {
-                                mDanmakuView.start();
+                            public void onResponse(BaseDanmakuParser response) {
+                                mDanmakuView.setCallback(new DrawHandler.Callback() {
+                                    @Override
+                                    public void prepared() {
+                                        setStatusText("");
+                                        mDanmakuView.start();
+                                        mVideoView.start();
+                                    }
+
+                                    @Override
+                                    public void updateTimer(DanmakuTimer timer) {
+                                    }
+
+                                    @Override
+                                    public void danmakuShown(BaseDanmaku danmaku) {
+                                    }
+
+                                    @Override
+                                    public void drawingFinished() {
+                                    }
+                                });
+                                mDanmakuView.prepare(response, mContext);
+                                mDanmakuView.enableDanmakuDrawingCache(true);
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                setStatusText("");
+                                Toast.makeText(getApplicationContext(), "load comments failed", Toast.LENGTH_SHORT).show();
                                 mVideoView.start();
                             }
-
-                            @Override
-                            public void updateTimer(DanmakuTimer timer) {
-                            }
-
-                            @Override
-                            public void danmakuShown(BaseDanmaku danmaku) {
-                            }
-
-                            @Override
-                            public void drawingFinished() {
-                            }
                         });
-                        mDanmakuView.prepare(response, mContext);
-                        mDanmakuView.enableDanmakuDrawingCache(true);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), "load comments failed", Toast.LENGTH_SHORT).show();
-
-                        mVideoView.start();
                     }
                 });
+                mVideoView.setVideoPath(playUrl.url);
             }
         }, new Response.ErrorListener() {
             @Override
