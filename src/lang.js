@@ -17,7 +17,15 @@ const TRANS = {
 
 	'loading...': {
 		zh: '载入中...',
-	}
+	},
+
+	'Recommended in this week': {
+		zh: '本周推荐',
+	},
+
+	'Recommended in this month': {
+		zh: '本月推荐',
+	},
 }
 
 export default function lang(text, args) {

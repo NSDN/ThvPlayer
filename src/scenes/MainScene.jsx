@@ -117,7 +117,7 @@ export default class MainScene extends Component {
 			<Drawer.Section items={[
 				{
 					icon: 'home',
-					value: 'Welcome',
+					value: 'Home',
 					active: true,
 					onPress: () => this.refs.drawer.closeDrawer(),
 				},
@@ -126,12 +126,11 @@ export default class MainScene extends Component {
 			<Drawer.Section items={[
 				{
 					icon: 'face',
-					value: 'Browse',
-					onPress: () => this.openURL('thvbrowse://videocata/douga.html')
+					value: 'SomeLink1',
 				},
 				{
 					icon: 'label',
-					value: 'Browse2',
+					value: 'SomeLink2',
 				},
 			]} />
 
@@ -172,11 +171,11 @@ export default class MainScene extends Component {
 		// FIXME: display in a different way
 		return this.renderSections([
 			{
-				name: 'Recommended in this week',
+				name: lang('Recommended in this week'),
 				list: this.state.news.week,
 			},
 			{
-				name: 'Recommended in this month',
+				name: lang('Recommended in this month'),
 				list: this.state.news.month,
 			},
 		])
