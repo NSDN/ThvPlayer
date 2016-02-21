@@ -32,3 +32,6 @@ local.properties
 #
 node_modules/
 npm-debug.log
+
+#react-native
+android/app/src/main/assets/index.android.bundle
