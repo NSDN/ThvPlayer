@@ -20,7 +20,7 @@ public class MainActivity extends ReactActivity {
 
     @Override
     protected boolean getUseDeveloperSupport() {
-        return BuildConfig.DEBUG;
+        return BuildConfig.REACT_DEV_SUPPORT;
     }
 
     @Override

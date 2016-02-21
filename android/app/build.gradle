@@ -12,7 +12,12 @@ android {
         versionName "1.0"
     }
     buildTypes {
+        debug {
+            buildConfigField "boolean", "REACT_DEV_SUPPORT",
+                (project.hasProperty("reactDevSupport") ? reactDevSupport : "true")
+        }
         release {
+            buildConfigField "boolean", "REACT_DEV_SUPPORT", "false"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

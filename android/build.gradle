@@ -21,14 +21,3 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-// for ijkplayer-demo
-ext {
-    compileSdkVersion = 23
-    buildToolsVersion = "23.0.0"
-
-    targetSdkVersion = 16
-
-    versionCode = 404001
-    versionName = "0.4.4.1"
-}
